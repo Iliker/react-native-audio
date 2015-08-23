@@ -26,6 +26,7 @@ NSString *const AudioRecorderEventFinished = @"recordingFinished";
   NSDate *_prevProgressUpdateTime;
   NSURL *_audioFileURL;
   AVAudioSession *_recordSession;
+  CGFloat _decibel;
 }
 
 @synthesize bridge = _bridge;
@@ -34,6 +35,9 @@ RCT_EXPORT_MODULE();
 
 - (void)sendProgressUpdate {
   if (_audioRecorder && _audioRecorder.recording) {
+      [_audioRecorder updateMeters];
+
+    _decibel = pow (10, [_audioRecorder averagePowerForChannel:0] / 20) * 250;
     _currentTime = _audioRecorder.currentTime;
   } else if (_audioPlayer && _audioPlayer.playing) {
     _currentTime = _audioPlayer.currentTime;
@@ -44,10 +48,12 @@ RCT_EXPORT_MODULE();
   NSString *time = [NSString stringWithFormat:@"%f", _currentTime];
 
   if (_prevProgressUpdateTime == nil ||
-   (([_prevProgressUpdateTime timeIntervalSinceNow] * -1000.0) >= _progressUpdateInterval)) {
+   (([_prevProgressUpdateTime timeIntervalSinceNow] * -1500.0) >= _progressUpdateInterval)) {
       [_bridge.eventDispatcher sendDeviceEventWithName:AudioRecorderEventProgress body:@{
-      @"currentTime": [NSNumber numberWithFloat:_currentTime]
-    }];
+                                                                                         @"currentTime": [NSNumber numberWithFloat:_currentTime]
+      }];
+      [_bridge.eventDispatcher sendDeviceEventWithName:AudioRecorderEventProgress body:@{
+                                                                                         @"decibel": [NSNumber numberWithFloat:_decibel]}];
 
     _prevProgressUpdateTime = [NSDate date];
   }
@@ -60,6 +66,7 @@ RCT_EXPORT_MODULE();
 - (void)startProgressTimer {
   _progressUpdateInterval = 250;
   _prevProgressUpdateTime = nil;
+  _audioRecorder.meteringEnabled = YES;
 
   [self stopProgressTimer];
 
@@ -89,25 +96,29 @@ RCT_EXPORT_METHOD(prepareRecordingAtPath:(NSString *)path)
 
   NSString *audioFilePath = [[self applicationDocumentsDirectory] stringByAppendingPathComponent:path];
 
-  _audioFileURL = [NSURL fileURLWithPath:audioFilePath];
 
-  NSDictionary *recordSettings = [NSDictionary dictionaryWithObjectsAndKeys:
-          [NSNumber numberWithInt:AVAudioQualityHigh], AVEncoderAudioQualityKey,
-          [NSNumber numberWithInt:16], AVEncoderBitRateKey,
-          [NSNumber numberWithInt: 2], AVNumberOfChannelsKey,
-          [NSNumber numberWithFloat:44100.0], AVSampleRateKey,
-          nil];
+    NSDictionary *recordSettings = [NSDictionary dictionaryWithObjectsAndKeys:
+                                   [NSNumber numberWithInt:kAudioFormatLinearPCM], AVFormatIDKey,
+                                   //[NSNumber numberWithFloat:44100.0], AVSampleRateKey,
+                                   [NSNumber numberWithFloat:8000.00], AVSampleRateKey,
+                                   [NSNumber numberWithInt:1], AVNumberOfChannelsKey,
+                                   //  [NSData dataWithBytes:&channelLayout length:sizeof(AudioChannelLayout)], AVChannelLayoutKey,
+                                   [NSNumber numberWithInt:16], AVLinearPCMBitDepthKey,
+                                   [NSNumber numberWithBool:NO], AVLinearPCMIsNonInterleaved,
+                                   [NSNumber numberWithBool:NO],AVLinearPCMIsFloatKey,
+                                   [NSNumber numberWithBool:NO], AVLinearPCMIsBigEndianKey,
+                                   nil];
+
+
+    _audioFileURL = [NSURL fileURLWithPath:audioFilePath];
+
 
   NSError *error = nil;
 
   _recordSession = [AVAudioSession sharedInstance];
   [_recordSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
 
-  _audioRecorder = [[AVAudioRecorder alloc]
-                initWithURL:_audioFileURL
-                settings:recordSettings
-                error:&error];
-
+  _audioRecorder = [[ AVAudioRecorder alloc] initWithURL:_audioFileURL settings:recordSettings error:&error];
   _audioRecorder.delegate = self;
 
   if (error) {
@@ -117,6 +128,8 @@ RCT_EXPORT_METHOD(prepareRecordingAtPath:(NSString *)path)
       [_audioRecorder prepareToRecord];
   }
 }
+
+
 
 RCT_EXPORT_METHOD(startRecording)
 {
