@@ -116,10 +116,9 @@ RCT_EXPORT_METHOD(prepareRecordingAtPath:(NSString *)path)
   NSError *error = nil;
 
   _recordSession = [AVAudioSession sharedInstance];
-  [_recordSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
-
-  _audioRecorder = [[ AVAudioRecorder alloc] initWithURL:_audioFileURL settings:recordSettings error:&error];
-  _audioRecorder.delegate = self;
+  // [_recordSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
+  // _audioRecorder = [[ AVAudioRecorder alloc] initWithURL:_audioFileURL settings:recordSettings error:&error];
+  // _audioRecorder.delegate = self;
 
   if (error) {
       NSLog(@"error: %@", [error localizedDescription]);
@@ -145,7 +144,7 @@ RCT_EXPORT_METHOD(stopRecording)
 {
   if (_audioRecorder.recording) {
     [_audioRecorder stop];
-    [_recordSession setActive:NO error:nil];
+    // [_recordSession setActive:NO error:nil];
     _prevProgressUpdateTime = nil;
   }
 }
