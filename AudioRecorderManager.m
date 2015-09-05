@@ -116,9 +116,14 @@ RCT_EXPORT_METHOD(prepareRecordingAtPath:(NSString *)path)
   NSError *error = nil;
 
   _recordSession = [AVAudioSession sharedInstance];
-  // [_recordSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
-  // _audioRecorder = [[ AVAudioRecorder alloc] initWithURL:_audioFileURL settings:recordSettings error:&error];
-  // _audioRecorder.delegate = self;
+  // [_recordSession setCategory:AVAudioSessionCategoryPlayAndRecord
+  //                withOptions:(AVAudioSessionCategoryOptionDefaultToSpeaker |
+  //                           AVAudioSessionCategoryOptionAllowBluetooth)
+  //                error:nil];
+  // [_recordSession overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil];
+
+  _audioRecorder = [[ AVAudioRecorder alloc] initWithURL:_audioFileURL settings:recordSettings error:&error];
+  _audioRecorder.delegate = self;
 
   if (error) {
       NSLog(@"error: %@", [error localizedDescription]);
