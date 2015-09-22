@@ -39,6 +39,10 @@ RCT_EXPORT_MODULE();
 
     _decibel = pow (10, [_audioRecorder averagePowerForChannel:0] / 20) * 250;
     _currentTime = _audioRecorder.currentTime;
+    if (_currentTime) {
+      _preCurrentTime = _audioRecorder.currentTime;
+    }
+    _currentTime = _preCurrentTime;
   } else if (_audioPlayer && _audioPlayer.playing) {
     _currentTime = _audioPlayer.currentTime;
   } else {
@@ -96,7 +100,7 @@ RCT_EXPORT_METHOD(prepareRecordingAtPath:(NSString *)path)
     NSDictionary *recordSettings = [NSDictionary dictionaryWithObjectsAndKeys:
                                    [NSNumber numberWithInt:kAudioFormatLinearPCM], AVFormatIDKey,
                                    //[NSNumber numberWithFloat:44100.0], AVSampleRateKey,
-                                   [NSNumber numberWithFloat:8000.00], AVSampleRateKey,
+                                   [NSNumber numberWithFloat:16000.00], AVSampleRateKey,
                                    [NSNumber numberWithInt:1], AVNumberOfChannelsKey,
                                    //  [NSData dataWithBytes:&channelLayout length:sizeof(AudioChannelLayout)], AVChannelLayoutKey,
                                    [NSNumber numberWithInt:16], AVLinearPCMBitDepthKey,
