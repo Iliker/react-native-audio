@@ -52,7 +52,7 @@ RCT_EXPORT_MODULE();
 
   if (_prevProgressUpdateTime == nil || (([_prevProgressUpdateTime timeIntervalSinceNow] * -1000.0) >= _progressUpdateInterval)) {
       [self.bridge.eventDispatcher sendAppEventWithName:AudioRecorderEventProgress body:@{
-      @"currentTime": [NSNumber numberWithFloat:_currentTime, @"decibel"],
+      @"currentTime": [NSNumber numberWithFloat:_currentTime],
       @"decibel": [NSNumber numberWithFloat:_decibel]
     }];
     _prevProgressUpdateTime = [NSDate date];
