@@ -45,15 +45,12 @@ RCT_EXPORT_MODULE();
     return;
   }
 
-  NSString *time = [NSString stringWithFormat:@"%f", _currentTime];
-
-  if (_prevProgressUpdateTime == nil ||
-   (([_prevProgressUpdateTime timeIntervalSinceNow] * -1500.0) >= _progressUpdateInterval)) {
+   (([_prevProgressUpdateTime timeIntervalSinceNow] * -1000.0) >= _progressUpdateInterval)) {
+      [self.bridge.eventDispatcher sendAppEventWithName:AudioRecorderEventProgress body:@{
+      @"currentTime": [NSNumber numberWithFloat:_currentTime]
+    }];
       [_bridge.eventDispatcher sendDeviceEventWithName:AudioRecorderEventProgress body:@{
-                                                                                         @"currentTime": [NSNumber numberWithFloat:_currentTime]
-      }];
-      [_bridge.eventDispatcher sendDeviceEventWithName:AudioRecorderEventProgress body:@{
-                                                                                         @"decibel": [NSNumber numberWithFloat:_decibel]}];
+        @"decibel": [NSNumber numberWithFloat:_decibel]}];
 
     _prevProgressUpdateTime = [NSDate date];
   }
@@ -75,9 +72,8 @@ RCT_EXPORT_MODULE();
 }
 
 - (void)audioRecorderDidFinishRecording:(AVAudioRecorder *)recorder successfully:(BOOL)flag {
-  NSLog(flag ? @"FINISHED OK" : @"FINISH ERROR");
-  [_bridge.eventDispatcher sendDeviceEventWithName:AudioRecorderEventFinished body:@{
-      @"finished": @"test"
+  [self.bridge.eventDispatcher sendAppEventWithName:AudioRecorderEventFinished body:@{
+      @"status": flag ? @"OK" : @"ERROR"
     }];
 }
 
