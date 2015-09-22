@@ -21,6 +21,7 @@ NSString *const AudioRecorderEventFinished = @"recordingFinished";
   AVAudioPlayer *_audioPlayer;
 
   NSTimeInterval _currentTime;
+  NSTimeInterval _preCurrentTime;
   id _progressUpdateTimer;
   int _progressUpdateInterval;
   NSDate *_prevProgressUpdateTime;
