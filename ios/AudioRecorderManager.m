@@ -70,6 +70,11 @@ RCT_EXPORT_MODULE();
 
   [self stopProgressTimer];
 
+  _recordSession = [AVAudioSession sharedInstance];
+  [_recordSession setCategory:AVAudioSessionCategoryPlayAndRecord
+                    withOptions:(AVAudioSessionCategoryOptionDefaultToSpeaker |
+                                 AVAudioSessionCategoryOptionAllowBluetooth)
+                          error:nil];
   _progressUpdateTimer = [CADisplayLink displayLinkWithTarget:self selector:@selector(sendProgressUpdate)];
   [_progressUpdateTimer addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSDefaultRunLoopMode];
 }
